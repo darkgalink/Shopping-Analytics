@@ -1,86 +1,87 @@
 # Footfall-Analysis-in-Retail-Stores
 
-### Real-time footfall analysis in retail stores
+### Análisis de afluencia de clientes en tiempo real en tiendas minoristas
 
-- Footfall analysis in real-time (supporting multiple video streams e.g., IP cameras, webcam) with a desktop app.
-- Calculate demographics such as dwell times/heat maps at a particular location e.g., near shelfs.
-- Customize the layout e.g., shelf control.
-- People detection (using YOLO) along with age/gender detection if applicable.
-- Track the path of customers in the stores.
-- Analysis data is also stored in the logs.
+- Análisis de afluencia en tiempo real (soporta múltiples flujos de video, p. ej. cámaras IP o webcam) desde una aplicación de escritorio.
+- Cálculo de métricas demográficas como tiempos de permanencia / mapas de calor en una ubicación concreta, p. ej. cerca de los estantes.
+- Personalización del plano de la tienda, p. ej. control por estante.
+- Detección de personas (usando YOLO) junto con detección de edad/género cuando aplica.
+- Seguimiento del recorrido de los clientes en la tienda.
+- Los datos de análisis también se guardan en los registros (logs).
 
-**Example test run showcasing multiple video streams with customer detection/tracking, dwell times/heat maps:**
-
-<div align="center">
-    <img src="data/images/running.jpg" alt="Running" width=""/>
-</div>
-
-**Example test run showcasing shelf control:**
+**Ejecución de ejemplo con múltiples flujos de video, detección/seguimiento de clientes y tiempos de permanencia / mapas de calor:**
 
 <div align="center">
-    <img src="data/images/overview.jpg" alt="Overview" width=""/>
+    <img src="data/images/running.jpg" alt="En ejecución" width=""/>
 </div>
 
-> NOTE: This project is experimental and not maintained actively. If any bugs/problems are encountered, please open an issue.
+**Ejecución de ejemplo con control de estantes:**
+
+<div align="center">
+    <img src="data/images/overview.jpg" alt="Vista general" width=""/>
+</div>
+
+> NOTA: Este proyecto es experimental y no se mantiene activamente. Si encuentras errores o problemas, abre una issue.
 
 ---
 
-## Table of Contents
+## Índice
 
-* [Running the app](#running-the-app)
-    - [Install the dependencies](#install-the-dependencies)
-    - [Download the models](#download-the-models)
-    - [Run the desktop app](#run-the-desktop-app)
-* [Build a standalone desktop app (PyInstaller)](#build-a-standalone-desktop-app-pyinstaller)
-* [Model files](#model-files)
-* [Tech stack](#tech-stack)
-* [References](#references)
+* [Ejecutar la aplicación](#ejecutar-la-aplicación)
+    - [Instalar las dependencias](#instalar-las-dependencias)
+    - [Descargar los modelos](#descargar-los-modelos)
+    - [Ejecutar la aplicación de escritorio](#ejecutar-la-aplicación-de-escritorio)
+* [Compilar una aplicación de escritorio independiente (PyInstaller)](#compilar-una-aplicación-de-escritorio-independiente-pyinstaller)
+* [Archivos de modelo](#archivos-de-modelo)
+* [Stack tecnológico](#stack-tecnológico)
+* [Referencias](#referencias)
+* [Créditos](#créditos)
 
 ---
 
-## Running the app
+## Ejecutar la aplicación
 
-### Install the dependencies
+### Instalar las dependencias
 
-Requires **Python 3.11** (tested on Windows 10/11). Create a virtual environment and install the dependencies: ```
+Requiere **Python 3.11** (probado en Windows 10/11). Crea un entorno virtual e instala las dependencias: ```
 python -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
 ```
 
-The runtime dependencies are small: PyQt5, OpenCV (`opencv-python<5`), NumPy, SciPy, Pillow and QDarkStyle.
-**TensorFlow/Keras/scikit-learn are not used any more** — YOLO inference and the MARS re-ID encoder
-run on OpenCV's DNN module, and the detection-to-track assignment uses SciPy's Hungarian solver.
+Las dependencias en tiempo de ejecución son ligeras: PyQt5, OpenCV (`opencv-python<5`), NumPy, SciPy, Pillow y QDarkStyle.
+**Ya no se usa TensorFlow/Keras/scikit-learn** — la inferencia de YOLO y el codificador de re-identificación MARS
+corren sobre el módulo DNN de OpenCV, y la asignación de detecciones a tracks usa el solver húngaro de SciPy.
 
-> NOTE: `opencv-python` must stay below 5.x — OpenCV 5 removed `cv2.dnn.readNetFromDarknet`.
+> NOTA: `opencv-python` debe mantenerse por debajo de 5.x — OpenCV 5 eliminó `cv2.dnn.readNetFromDarknet`.
 
-### Download the models
+### Descargar los modelos
 
-The big model files (~342 MB) are **not stored in git**; they are listed in `models.txt`
-(sha256 + size + URL) and downloaded on demand: ```
-python scripts/download_models.py          # download what is missing (verifies sha256)
-python scripts/download_models.py --check  # only verify (exit 1 if something is missing)
-python scripts/download_models.py --force  # re-download everything
+Los archivos de modelo grandes (~342 MB) **no están en git**; se listan en `models.txt`
+(sha256 + tamaño + URL) y se descargan bajo demanda: ```
+python scripts/download_models.py          # descarga lo que falta (verifica sha256)
+python scripts/download_models.py --check  # solo verifica (exit 1 si falta algo)
+python scripts/download_models.py --force  # vuelve a descargar todo
 ```
-Running the app from source (`python footfall.py`) does this automatically on first launch,
-so a fresh clone only needs `pip install -r requirements.txt` + internet access.
-The packaged exe does not download anything — the models are bundled at build time, so run
-the download script once before `pyinstaller`.
 
-### Run the desktop app
+Ejecutar la aplicación desde el código fuente (`python footfall.py`) hace esto automáticamente
+en el primer arranque, así que un clon nuevo solo necesita `pip install -r requirements.txt` + acceso a internet.
+El exe empaquetado no descarga nada — los modelos se incluyen en el momento de compilar, así que ejecuta
+el script de descarga una vez antes de `pyinstaller`.
 
-The desktop application is powered by PyQt, run it with: ```
+### Ejecutar la aplicación de escritorio
+
+La aplicación de escritorio funciona con PyQt, ejecútala con: ```
 .venv\Scripts\python footfall.py
 ```
 
-Pick a video file (samples in `data/tests/`), a webcam or an IP camera URL in the device dialog, then press OK.
-Logs (CSV) are written to `data/logs/` under the current working directory.
+Elige un archivo de video (hay muestras en `data/tests/`), la webcam o la URL de una cámara IP en el diálogo de dispositivo y pulsa Aceptar.
+Los registros (CSV) se escriben en `data/logs/` bajo el directorio de trabajo actual.
 
 ---
 
-## Build a standalone desktop app (PyInstaller)
+## Compilar una aplicación de escritorio independiente (PyInstaller)
 
-End users do not need Python — the app can be packaged into a self-contained folder with:
-```
+Los usuarios finales no necesitan Python — la aplicación se puede empaquetar en una carpeta autónoma con: ```
 python -m pip install pyinstaller
 pyinstaller --noconfirm --clean --windowed --name ShoppingAnalytics ^
   --add-data "ui;ui" ^
@@ -93,51 +94,62 @@ pyinstaller --noconfirm --clean --windowed --name ShoppingAnalytics ^
   --add-data "processor\agender\model;processor\agender\model" ^
   footfall.py
 ```
-(On Linux/macOS use `:` instead of `;` in `--add-data`.)
+(En Linux/macOS usa `:` en lugar de `;` en `--add-data`.)
 
-Result: `dist\ShoppingAnalytics\ShoppingAnalytics.exe`. Distribute the whole `ShoppingAnalytics`
-folder (the executable needs the `_internal\` resources next to it).
+Resultado: `dist\ShoppingAnalytics\ShoppingAnalytics.exe`. Distribuye la carpeta `ShoppingAnalytics`
+completa (el ejecutable necesita los recursos de `_internal\` junto a él).
 
-Resource paths are resolved through `paths.py`:
-- `resource_path()` — read-only model/UI files, bundled into the exe.
-- `output_path()` / `ensure_output_dirs()` — writable `data/logs/` under the current working directory.
+Las rutas de recursos se resuelven mediante `paths.py`:
+- `resource_path()` — archivos de modelo/UI de solo lectura, empaquetados en el exe.
+- `output_path()` / `ensure_output_dirs()` — `data/logs/` escribible bajo el directorio de trabajo actual.
 
 ---
 
-## Model files
+## Archivos de modelo
 
-Small files (configs, class lists, the converted MARS encoder) are versioned in the repo;
-the heavy ones are downloaded from `models.txt` by `scripts/download_models.py` and
-verified with sha256:
+Los archivos pequeños (configs, listas de clases, el codificador MARS convertido) están versionados en el repo;
+los pesados se descargan desde `models.txt` con `scripts/download_models.py` y se
+verifican con sha256:
 
-| Component | File | Versioned | Origin |
+| Componente | Archivo | Versionado | Origen |
 |---|---|---|---|
-| Person detector | `processor/detectracker/yolov3.cfg` + `model_data/yolov3.weights` (248 MB) | cfg yes / weights **downloaded** | [YOLOv3 (pjreddie.com)](https://pjreddie.com/media/files/yolov3.weights) |
-| Detection classes | `processor/detectracker/model_data/coco_classes.txt` | yes | COCO 80 classes |
-| Re-ID encoder (MARS) | `model_data/mars-small128-opencv.pb` (11 MB) | yes | converted from the Keras `mars-small128.pb` so it runs on `cv2.dnn`; the original [mars-small128.pb](https://raw.githubusercontent.com/saimj7/Shopping-Analytics/master/processor/detectracker/model_data/mars-small128.pb) (**downloaded**, reference only) comes from the upstream project |
-| Face detector | `processor/agender/opencv_face_detector_uint8.pb` (2.7 MB) + `.pbtxt` | pbtxt yes / pb **downloaded** | [OpenCV Zoo face detector](https://github.com/opencv/opencv_zoo) mirrored in [smahesh29/Gender-and-Age-Detection](https://github.com/smahesh29/Gender-and-Age-Detection) |
-| Age / gender classifier | `model/age_net.caffemodel` + `gender_net.caffemodel` (45 MB each) + `deploy_*2.prototxt` | prototxt yes / caffemodel **downloaded** | [GilLevi/AgeGenderDeepLearning](https://github.com/GilLevi/AgeGenderDeepLearning) mirrored in [smahesh29/Gender-and-Age-Detection](https://github.com/smahesh29/Gender-and-Age-Detection) |
-| Sample videos | `data/tests/*.mp4` (41 MB) | yes | test footage of this project |
+| Detector de personas | `processor/detectracker/yolov3.cfg` + `model_data/yolov3.weights` (248 MB) | cfg sí / weights **descargado** | [YOLOv3 (pjreddie.com)](https://pjreddie.com/media/files/yolov3.weights) |
+| Clases de detección | `processor/detectracker/model_data/coco_classes.txt` | sí | 80 clases COCO |
+| Codificador Re-ID (MARS) | `model_data/mars-small128-opencv.pb` (11 MB) | sí | convertido desde el Keras `mars-small128.pb` para correr en `cv2.dnn`; el original [mars-small128.pb](https://raw.githubusercontent.com/saimj7/Shopping-Analytics/master/processor/detectracker/model_data/mars-small128.pb) (**descargado**, solo como referencia) proviene del proyecto original |
+| Detector facial | `processor/agender/opencv_face_detector_uint8.pb` (2.7 MB) + `.pbtxt` | pbtxt sí / pb **descargado** | [OpenCV Zoo face detector](https://github.com/opencv/opencv_zoo) reflejado en [smahesh29/Gender-and-Age-Detection](https://github.com/smahesh29/Gender-and-Age-Detection) |
+| Clasificador edad/género | `model/age_net.caffemodel` + `gender_net.caffemodel` (45 MB cada uno) + `deploy_*2.prototxt` | prototxt sí / caffemodel **descargado** | [GilLevi/AgeGenderDeepLearning](https://github.com/GilLevi/AgeGenderDeepLearning) reflejado en [smahesh29/Gender-and-Age-Detection](https://github.com/smahesh29/Gender-and-Age-Detection) |
+| Videos de muestra | `data/tests/*.mp4` (41 MB) | sí | material de prueba de este proyecto |
 
-To add a new asset: append a line to `models.txt` (`sha256  size_bytes  destino  url`).
+Para agregar un nuevo recurso: añade una línea a `models.txt` (`sha256  tamaño_en_bytes  destino  url`).
 
 ---
 
-## Tech stack
+## Stack tecnológico
 
 - **UI:** PyQt5 + QDarkStyle (`footfall.py`, `windows/`, `ui/*.ui`)
-- **Detection / tracking:** YOLOv3 via `cv2.dnn` + DeepSORT (`processor/detectracker/`)
-- **Age & gender:** OpenCV DNN Caffe models (`processor/agender/`)
-- **Assignment:** SciPy `linear_sum_assignment` (`processor/detectracker/deep_sort/linear_assignment.py`)
-- **Analytics:** heatmap, dwell time, gender distribution (`analyser/`)
+- **Detección / seguimiento:** YOLOv3 vía `cv2.dnn` + DeepSORT (`processor/detectracker/`)
+- **Edad y género:** modelos Caffe de OpenCV DNN (`processor/agender/`)
+- **Asignación:** `linear_sum_assignment` de SciPy (`processor/detectracker/deep_sort/linear_assignment.py`)
+- **Analítica:** heatmap, tiempo de permanencia, distribución por género (`analyser/`)
 
 ---
 
-## References
+## Referencias
 
 - [YOLOv3](https://pjreddie.com/darknet/yolov3/)
 - [DeepSORT (nwojke/deep_sort)](https://github.com/nwojke/deep_sort)
 - [AgeGenderDeepLearning (GilLevi)](https://github.com/GilLevi/AgeGenderDeepLearning)
+
+---
+
+## Créditos
+
+Este proyecto se basa en el repositorio original **[saimj7/Shopping-Analytics](https://github.com/saimj7/Shopping-Analytics)**
+(*Footfall-Analysis-in-Retail-Stores*, autor: <a href="http://saimj7.github.io" target="_blank">Sai_Mj</a>).
+
+Modificaciones de esta versión: migración a Python 3.11, reemplazo de TensorFlow/Keras/scikit-learn
+por OpenCV DNN + SciPy, descarga de modelos bajo demanda (`models.txt` + `scripts/download_models.py`),
+compilación con PyInstaller y pura limpieza del historial de git.
 
 ---
 
