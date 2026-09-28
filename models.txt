@@ -1,0 +1,7 @@
+# Modelos pesados que NO se versionan en git.
+# Se descargan con:  python scripts/download_models.py   (automático al arrancar la app desde código)
+# Formato:  sha256  size_bytes  destino  url1[|url2...]
+523e4e69e1d015393a1b0a441cef1d9c7659e3eb2d7e15f793f060a21b32f297  248007048  processor/detectracker/model_data/yolov3.weights  https://pjreddie.com/media/files/yolov3.weights
+6dde5d07df5ca1d66ff39e525693f05ccfb9d2c437e188fdd1a10d42e57fabd6  45661480  processor/agender/model/age_net.caffemodel  https://raw.githubusercontent.com/smahesh29/Gender-and-Age-Detection/master/age_net.caffemodel|https://github.com/smahesh29/Gender-and-Age-Detection/raw/master/age_net.caffemodel
+ac7571b281ae078817764b645a20541bd6aa1babeac20a45e6d8de7d61ba0e50  45649168  processor/agender/model/gender_net.caffemodel  https://raw.githubusercontent.com/smahesh29/Gender-and-Age-Detection/master/gender_net.caffemodel|https://github.com/smahesh29/Gender-and-Age-Detection/raw/master/gender_net.caffemodel
+5c71d752ef2cbf2f457ac82fdd580fcb2522fd04c5efdaed18eb6d9e2843fbed  2727750  processor/agender/opencv_face_detector_uint8.pb  https://raw.githubusercontent.com/smahesh29/Gender-and-Age-Detection/master/opencv_face_detector_uint8.pb|https://github.com/smahesh29/Gender-and-Age-Detection/raw/master/opencv_face_detector_uint8.pb

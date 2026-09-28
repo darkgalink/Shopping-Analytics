@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QMessageBox
 from windows.main import MainWindow
 import qdarkstyle
 
@@ -15,6 +15,19 @@ def main():
 
     # Make sure writable output folders exist
     ensure_output_dirs()
+
+    # Download missing models when running from source (never in the frozen app)
+    if not getattr(sys, 'frozen', False):
+        from scripts.download_models import ensure
+        failures = ensure()
+        if failures:
+            QMessageBox.warning(
+                None,
+                'Modelos',
+                'Faltan modelos y no se pudieron descargar:\n\n'
+                + '\n'.join(failures)
+                + '\n\nEjecuta: python scripts/download_models.py',
+            )
     
     # Create main window
     main_window = MainWindow()

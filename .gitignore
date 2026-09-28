@@ -152,6 +152,13 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# Modelos pesados que se descargan con: python scripts/download_models.py
+*.caffemodel
+*.weights
+processor/agender/opencv_face_detector_uint8.pb
+processor/detectracker/model_data/mars-small128.pb
+*.part
+
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore

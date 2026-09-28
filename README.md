@@ -29,6 +29,7 @@
 
 * [Running the app](#running-the-app)
     - [Install the dependencies](#install-the-dependencies)
+    - [Download the models](#download-the-models)
     - [Run the desktop app](#run-the-desktop-app)
 * [Build a standalone desktop app (PyInstaller)](#build-a-standalone-desktop-app-pyinstaller)
 * [Model files](#model-files)
@@ -51,6 +52,19 @@ The runtime dependencies are small: PyQt5, OpenCV (`opencv-python<5`), NumPy, Sc
 run on OpenCV's DNN module, and the detection-to-track assignment uses SciPy's Hungarian solver.
 
 > NOTE: `opencv-python` must stay below 5.x — OpenCV 5 removed `cv2.dnn.readNetFromDarknet`.
+
+### Download the models
+
+The big model files (~342 MB) are **not stored in git**; they are listed in `models.txt`
+(sha256 + size + URL) and downloaded on demand: ```
+python scripts/download_models.py          # download what is missing (verifies sha256)
+python scripts/download_models.py --check  # only verify (exit 1 if something is missing)
+python scripts/download_models.py --force  # re-download everything
+```
+Running the app from source (`python footfall.py`) does this automatically on first launch,
+so a fresh clone only needs `pip install -r requirements.txt` + internet access.
+The packaged exe does not download anything — the models are bundled at build time, so run
+the download script once before `pyinstaller`.
 
 ### Run the desktop app
 
@@ -92,15 +106,20 @@ Resource paths are resolved through `paths.py`:
 
 ## Model files
 
-All model files are already present in the repository (or must be downloaded for a fresh checkout):
+Small files (configs, class lists, the converted MARS encoder) are versioned in the repo;
+the heavy ones are downloaded from `models.txt` by `scripts/download_models.py` and
+verified with sha256:
 
-| Component | File | Origin |
-|---|---|---|
-| Person detector | `processor/detectracker/yolov3.cfg` + `processor/detectracker/model_data/yolov3.weights` | [YOLOv3 (pjreddie.com)](https://pjreddie.com/media/files/yolov3.weights) |
-| Detection classes | `processor/detectracker/model_data/coco_classes.txt` | COCO 80 classes |
-| Re-ID encoder (MARS) | `processor/detectracker/model_data/mars-small128-opencv.pb` | converted from the Keras `mars-small128.pb` (Deep Sort) so it runs on `cv2.dnn`; the original `mars-small128.pb` is kept for reference |
-| Face detector | `processor/agender/opencv_face_detector_uint8.pb` + `.pbtxt` | OpenCV Zoo |
-| Age / gender classifier | `processor/agender/model/age_net.caffemodel`, `gender_net.caffemodel` + `deploy_*2.prototxt` | [GilLevi/AgeGenderDeepLearning](https://github.com/GilLevi/AgeGenderDeepLearning) |
+| Component | File | Versioned | Origin |
+|---|---|---|---|
+| Person detector | `processor/detectracker/yolov3.cfg` + `model_data/yolov3.weights` (248 MB) | cfg yes / weights **downloaded** | [YOLOv3 (pjreddie.com)](https://pjreddie.com/media/files/yolov3.weights) |
+| Detection classes | `processor/detectracker/model_data/coco_classes.txt` | yes | COCO 80 classes |
+| Re-ID encoder (MARS) | `model_data/mars-small128-opencv.pb` (11 MB) | yes | converted from the Keras `mars-small128.pb` so it runs on `cv2.dnn`; the original [mars-small128.pb](https://raw.githubusercontent.com/saimj7/Shopping-Analytics/master/processor/detectracker/model_data/mars-small128.pb) (**downloaded**, reference only) comes from the upstream project |
+| Face detector | `processor/agender/opencv_face_detector_uint8.pb` (2.7 MB) + `.pbtxt` | pbtxt yes / pb **downloaded** | [OpenCV Zoo face detector](https://github.com/opencv/opencv_zoo) mirrored in [smahesh29/Gender-and-Age-Detection](https://github.com/smahesh29/Gender-and-Age-Detection) |
+| Age / gender classifier | `model/age_net.caffemodel` + `gender_net.caffemodel` (45 MB each) + `deploy_*2.prototxt` | prototxt yes / caffemodel **downloaded** | [GilLevi/AgeGenderDeepLearning](https://github.com/GilLevi/AgeGenderDeepLearning) mirrored in [smahesh29/Gender-and-Age-Detection](https://github.com/smahesh29/Gender-and-Age-Detection) |
+| Sample videos | `data/tests/*.mp4` (41 MB) | yes | test footage of this project |
+
+To add a new asset: append a line to `models.txt` (`sha256  size_bytes  destino  url`).
 
 ---
 
