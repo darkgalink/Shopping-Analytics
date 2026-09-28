@@ -16,6 +16,9 @@ from analyser.dwell import Dwell
 from windows.customer import CustomerItem
 from windows.device import DeviceWindow
 
+# Etiquetas del modelo traducidas para su mostrar en pantalla
+GENDER_ES = {"Male": "Hombre", "Female": "Mujer"}
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -30,7 +33,7 @@ class MainWindow(QMainWindow):
 
         self.statusBar = QStatusBar()
         self.setStatusBar(self.statusBar)
-        self.statusBar.showMessage("Welcome!")
+        self.statusBar.showMessage("¡Bienvenido!")
 
         # Connection for file open button
         self.btnAddInsideSrc.clicked.connect(self.addInsideSrc)
@@ -101,8 +104,8 @@ class MainWindow(QMainWindow):
         self.log_tabwidget.clear()
         self.customer_list = QListWidget(self)
         self.recommend_list = QListWidget(self)
-        self.log_tabwidget.addTab(self.customer_list, "Monitoring")
-        self.log_tabwidget.addTab(self.recommend_list, "Analysis")
+        self.log_tabwidget.addTab(self.customer_list, "Monitoreo")
+        self.log_tabwidget.addTab(self.recommend_list, "Análisis")
 
         # Tab control
         self.log_tabwidget.blockSignals(True) #just for not showing the initial message
@@ -133,8 +136,14 @@ class MainWindow(QMainWindow):
     # Closing window event
     def closeEvent(self, event):
         close = QMessageBox()
-        close.setText("Do you want to quit?")
+        close.setText("¿Desea salir?")
         close.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+        yes_btn = close.button(QMessageBox.Yes)
+        if yes_btn is not None:
+            yes_btn.setText("Sí")
+        cancel_btn = close.button(QMessageBox.Cancel)
+        if cancel_btn is not None:
+            cancel_btn.setText("Cancelar")
         close = close.exec()
 
         if close == QMessageBox.Yes:
@@ -144,7 +153,7 @@ class MainWindow(QMainWindow):
                     cap.release()
                 for cap in self.outCap:
                     cap.release()
-                self.statusBar.showMessage("Stopping...")
+                self.statusBar.showMessage("Deteniendo...")
 
             event.accept()
         else:
@@ -217,12 +226,12 @@ class MainWindow(QMainWindow):
                     print_num = int(len(shelve_list) * 1)
                     if print_num < 1:
                         print_num = 1
-                    rec_total_wait_time = "The average wait time at the shelves is " + str(round(total_aver_wait_time, 2))
-                    rec_wait_time_shelve = "The most waited shelves are: "
-                    rec_freq_shelve = "The most popular shelves are: "
-                    rec_free_shelve = "The most free shelves are: "
-                    rec_male_freq_shelve = "The most popular shelves among males are: "
-                    rec_female_freq_shelve = "The most popular shelves among females are: "
+                    rec_total_wait_time = "El tiempo medio de espera en las estanterías es " + str(round(total_aver_wait_time, 2))
+                    rec_wait_time_shelve = "Las estanterías con más espera son: "
+                    rec_freq_shelve = "Las estanterías más populares son: "
+                    rec_free_shelve = "Las estanterías más libres son: "
+                    rec_male_freq_shelve = "Las estanterías más populares entre hombres son: "
+                    rec_female_freq_shelve = "Las estanterías más populares entre mujeres son: "
 
                     for iii in range(print_num):
                         rec_wait_time_shelve = rec_wait_time_shelve + str(sort_wait_time_index[-1 - iii]) + " "
@@ -235,7 +244,7 @@ class MainWindow(QMainWindow):
 
                     item0 = QtWidgets.QListWidgetItem()
                     widget0 = QtWidgets.QWidget()
-                    widgetText0 =  QtWidgets.QLabel("Region: " + str(ii))
+                    widgetText0 =  QtWidgets.QLabel("Región: " + str(ii))
                     widgetLayout0 = QtWidgets.QVBoxLayout()
                     widgetLayout0.addWidget(widgetText0)
                     widgetLayout0.addStretch()
@@ -322,19 +331,20 @@ class MainWindow(QMainWindow):
                     self.tableWidget = QtWidgets.QTableWidget()
                     self.tableWidget.setRowCount(len(id_list) + 1)
                     self.tableWidget.setColumnCount(len(shelve_list) + 4)
-                    self.tableWidget.setItem(0,0, QTableWidgetItem("No"))
-                    self.tableWidget.setItem(0,1, QTableWidgetItem("User ID"))
-                    self.tableWidget.setItem(0,2, QTableWidgetItem("Age"))
-                    self.tableWidget.setItem(0,3, QTableWidgetItem("Gender"))
+                    self.tableWidget.setItem(0,0, QTableWidgetItem("N.º"))
+                    self.tableWidget.setItem(0,1, QTableWidgetItem("ID de cliente"))
+                    self.tableWidget.setItem(0,2, QTableWidgetItem("Edad"))
+                    self.tableWidget.setItem(0,3, QTableWidgetItem("Género"))
                     for iii in range(len(shelve_list)):
-                        self.tableWidget.setItem(0, 4 + iii, QTableWidgetItem("Shelf" + str(iii)))
+                        self.tableWidget.setItem(0, 4 + iii, QTableWidgetItem("Estante" + str(iii)))
                     for iii in range(len(id_list)):
                         self.tableWidget.setItem(iii + 1, 0, QTableWidgetItem(str(iii + 1)))
                         self.tableWidget.setItem(iii + 1, 1, QTableWidgetItem(str(id_list[iii])))
                         if age_list[iii] != []:
                             self.tableWidget.setItem(iii + 1, 2, QTableWidgetItem(str(age_list[iii])))
                         if gender_list[iii] != []:
-                            self.tableWidget.setItem(iii + 1, 3, QTableWidgetItem(str(gender_list[iii])))
+                            self.tableWidget.setItem(iii + 1, 3, QTableWidgetItem(
+                                {"male": "Hombre", "female": "Mujer"}.get(str(gender_list[iii]), str(gender_list[iii]))))
                         for jj in range(len(shelve_list)):
                             self.tableWidget.setItem(iii + 1, 4 + jj, QTableWidgetItem(str(round(status_table[iii][jj], 2))))
 
@@ -359,7 +369,7 @@ class MainWindow(QMainWindow):
             if device_window.mode == 1:
                 self.listInsideSrc.addItem(device_window.fileName)
             elif device_window.mode == 2:
-                self.listInsideSrc.addItem("Webcam: " + str(device_window.camNum))
+                self.listInsideSrc.addItem("Cámara web: " + str(device_window.camNum))
             else:
                 self.listInsideSrc.addItem(device_window.ip_url)
             self.inCap.append(device_window.cap)
@@ -375,7 +385,7 @@ class MainWindow(QMainWindow):
             if device_window.mode == 1:
                 self.listOutsideSrc.addItem(device_window.fileName)
             elif device_window.mode == 2:
-                self.listOutsideSrc.addItem("Webcam: " + str(device_window.camNum))
+                self.listOutsideSrc.addItem("Cámara web: " + str(device_window.camNum))
             else:
                 self.listOutsideSrc.addItem(device_window.ip_url)
             self.outCap.append(device_window.cap)
@@ -404,15 +414,15 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot()
     def select_camera(self, last_index):
         number = 0
-        hint = "Select a camera (0 to " + str(last_index) + "): "
+        hint = "Seleccione una cámara (0 a " + str(last_index) + "): "
         try:
             number = int(input(hint))
         except Exception:
-            print("It's not a number!")
+            print("¡No es un número!")
             return self.select_camera(last_index)
 
         if number > last_index:
-            print("Invalid number! Retry!")
+            print("¡Número no válido! ¡Reintente!")
             return self.select_camera(last_index)
         return number
 
@@ -435,7 +445,7 @@ class MainWindow(QMainWindow):
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Critical)
             msg.setText("Error")
-            msg.setInformativeText('Please add a proper video source!')
+            msg.setInformativeText('¡Añada una fuente de vídeo válida!')
             msg.setWindowTitle("Error")
             msg.exec_()
         else:
@@ -475,7 +485,7 @@ class MainWindow(QMainWindow):
                 self.outDetectors.append(Detectracker())
                 self.outDwell.append(Dwell(self.fps))
 
-            self.statusBar.showMessage("Running...")
+            self.statusBar.showMessage("En ejecución...")
 
     # Process frame
     def nextFrameSlot(self):
@@ -496,7 +506,7 @@ class MainWindow(QMainWindow):
                 cap.release()
             for cap in self.outCap:
                 cap.release()
-            self.statusBar.showMessage("Video ended...")
+            self.statusBar.showMessage("Fin del vídeo...")
             self.running = False
             self.frameNo = 0
 
@@ -594,7 +604,7 @@ class MainWindow(QMainWindow):
                 # Draw age and gender
                 if len(agender) > 0:
                     for res in agender:
-                        label = "{},{}".format(res[1], res[0])
+                        label = "{},{}".format(GENDER_ES.get(res[1], res[1]), res[0])
                         cv2.rectangle(frame, (res[2][0], res[2][1]), (res[2][2], res[2][3]), (0, 255, 0), 2)
                         cv2.putText(frame, label, (res[2][0], res[2][1]-10), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 255), 4, cv2.LINE_AA)
 
@@ -602,7 +612,7 @@ class MainWindow(QMainWindow):
                     shelve_list = self.shelve_list_list[i]
                     rect = shelve_list[ii]
                     cv2.rectangle(frame, (int(rect[0]), int(rect[1])), (int(rect[2]), int(rect[3])), (0, 255, 0), 2)
-                    cv2.putText(frame, "Shelf" + str(ii), (int(rect[0]), int(rect[1])), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    cv2.putText(frame, "Estante" + str(ii), (int(rect[0]), int(rect[1])), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
                 # Report monitor result
                 customer_data = self.inDwell[i].get_data()
@@ -667,7 +677,7 @@ class MainWindow(QMainWindow):
                 # Draw age and gender
                 if len(agender) > 0:
                     for res in agender:
-                        label = "{},{}".format(res[1], res[0])
+                        label = "{},{}".format(GENDER_ES.get(res[1], res[1]), res[0])
                         cv2.rectangle(frame, (res[2][0], res[2][1]), (res[2][2], res[2][3]), (0, 255, 0), 2)
                         cv2.putText(frame, label, (res[2][0], res[2][1]-10), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 255), 2, cv2.LINE_AA)
 
@@ -724,9 +734,9 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot()
     def pauseProcess(self):
         if self.running == True:
-            if self.btnPause.text() == "Pause":
+            if self.btnPause.text() == "Pausar":
                 self.timer.stop()
-                self.btnPause.setText("Resume")
+                self.btnPause.setText("Reanudar")
 
                 customer_data = []
                 for i in range(len(self.inCap)):
@@ -739,12 +749,12 @@ class MainWindow(QMainWindow):
                 self.writeLog(customer_data, 2)
 
                 self.log_tabwidget.setTabEnabled(1, True);
-                self.statusBar.showMessage("Paused...")
+                self.statusBar.showMessage("En pausa...")
             else:
-                self.btnPause.setText("Pause")
+                self.btnPause.setText("Pausar")
                 self.log_tabwidget.setTabEnabled(1, False);
                 self.timer.start()
-                self.statusBar.showMessage("Running...")
+                self.statusBar.showMessage("En ejecución...")
 
     # Stop process
     @QtCore.pyqtSlot()
@@ -757,7 +767,7 @@ class MainWindow(QMainWindow):
             for cap in self.outCap:
                 cap.release()
 
-            self.statusBar.showMessage("Stopped...")
+            self.statusBar.showMessage("Detenido...")
             self.running = False
             self.frameNo = 0
 
@@ -866,8 +876,8 @@ class MainWindow(QMainWindow):
     def addShelve(self):
         self.setShelve = True
         self.timer.stop()
-        self.statusBar.showMessage("Paused...")
-        self.btnPause.setText("Resume")
+        self.statusBar.showMessage("En pausa...")
+        self.btnPause.setText("Reanudar")
 
         ind = self.listInsideSrc.currentRow()
         if ind == -1:
@@ -877,7 +887,7 @@ class MainWindow(QMainWindow):
         for i in range(len(shelve_list)):
             rect = shelve_list[i]
             cv2.rectangle(self.backFrame[ind], (int(rect[0]), int(rect[1])), (int(rect[2]), int(rect[3])), (0, 255, 0), 2)
-            cv2.putText(self.backFrame[ind], "Shelf" + str(i), (int(rect[0]), int(rect[1])), 0, 5e-3 * 100, (0, 255, 0), 2)
+            cv2.putText(self.backFrame[ind], "Estante" + str(i), (int(rect[0]), int(rect[1])), 0, 5e-3 * 100, (0, 255, 0), 2)
         pix = QPixmap.fromImage(img)
         self.live_preview.setPixmap(pix)
 
@@ -909,7 +919,7 @@ class MainWindow(QMainWindow):
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Critical)
                 msg.setText("Error")
-                msg.setInformativeText('Failed to set a reasonable position of the shelf!')
+                msg.setInformativeText('¡No se pudo definir una posición válida para la estantería!')
                 msg.setWindowTitle("Error")
                 msg.exec_()
                 return
@@ -930,22 +940,28 @@ class MainWindow(QMainWindow):
             for i in range(len(shelve_list)):
                 rect = shelve_list[i]
                 cv2.rectangle(tempFrame, (int(rect[0]), int(rect[1])), (int(rect[2]), int(rect[3])), (0, 255, 0), 2)
-                cv2.putText(tempFrame, "Shelf" + str(i), (int(rect[0]), int(rect[1])), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                cv2.putText(tempFrame, "Estante" + str(i), (int(rect[0]), int(rect[1])), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             cv2.rectangle(tempFrame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
             pix = QPixmap.fromImage(img)
             self.live_preview.setPixmap(pix)
 
             addS = QMessageBox()
-            addS.setText("Do you want to add the shelf here?")
+            addS.setText("¿Desea añadir la estantería aquí?")
             addS.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+            yes_btn = addS.button(QMessageBox.Yes)
+            if yes_btn is not None:
+                yes_btn.setText("Sí")
+            cancel_btn = addS.button(QMessageBox.Cancel)
+            if cancel_btn is not None:
+                cancel_btn.setText("Cancelar")
             addS = addS.exec()
 
             if addS == QMessageBox.Yes:
                 self.shelve_list_list[ind].append([x1, y1, x2, y2])
                 self.setShelve = False
                 self.timer.start()
-                self.statusBar.showMessage("Running...")
-                self.btnPause.setText("Pause")
+                self.statusBar.showMessage("En ejecución...")
+                self.btnPause.setText("Pausar")
             else:
                 tempFrame1 = self.backFrame[ind].copy()
                 img = QImage(tempFrame1, self.backFrame[ind].shape[1], self.backFrame[ind].shape[0], QtGui.QImage.Format_RGB888)
@@ -953,7 +969,7 @@ class MainWindow(QMainWindow):
                 for i in range(len(shelve_list)):
                     rect = shelve_list[i]
                     cv2.rectangle(tempFrame1, (int(rect[0]), int(rect[1])), (int(rect[2]), int(rect[3])), (0, 255, 0), 2)
-                    cv2.putText(tempFrame1, "Shelf" + str(i), (int(rect[0]), int(rect[1])), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    cv2.putText(tempFrame1, "Estante" + str(i), (int(rect[0]), int(rect[1])), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 pix = QPixmap.fromImage(img)
                 self.live_preview.setPixmap(pix)
                 return

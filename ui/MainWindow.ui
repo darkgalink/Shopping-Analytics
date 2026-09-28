@@ -14,7 +14,7 @@
    <enum>Qt::DefaultContextMenu</enum>
   </property>
   <property name="windowTitle">
-   <string>Footfall Analysis</string>
+   <string>Análisis de Afluencia</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -41,7 +41,7 @@
        </font>
       </property>
       <property name="text">
-       <string>Footfall Analysis</string>
+       <string>Análisis de Afluencia</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -55,19 +55,25 @@
         <item>
          <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>Video Sources</string>
+           <string>Fuentes de vídeo</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="btnAddInsideSrc">
+          <property name="toolTip">
+           <string>Añadir un vídeo o cámara para analizar el interior de la tienda</string>
+          </property>
           <property name="text">
-           <string>Add Inside Video Source</string>
+           <string>Añadir fuente de vídeo interior</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QListWidget" name="listInsideSrc">
+          <property name="toolTip">
+           <string>Fuentes de vídeo del interior añadidas; seleccione una para definir sus estanterías</string>
+          </property>
           <property name="maximumSize">
            <size>
             <width>16777215</width>
@@ -78,13 +84,19 @@
         </item>
         <item>
          <widget class="QPushButton" name="btnAddOutsideSrc">
+          <property name="toolTip">
+           <string>Añadir un vídeo o cámara para analizar el exterior de la tienda</string>
+          </property>
           <property name="text">
-           <string>Add Outside Video Source</string>
+           <string>Añadir fuente de vídeo exterior</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QListWidget" name="listOutsideSrc">
+          <property name="toolTip">
+           <string>Fuentes de vídeo del exterior añadidas</string>
+          </property>
           <property name="maximumSize">
            <size>
             <width>16777215</width>
@@ -101,22 +113,31 @@
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item>
             <widget class="QPushButton" name="btnStart">
+             <property name="toolTip">
+              <string>Iniciar o reiniciar el análisis de las fuentes de vídeo</string>
+             </property>
              <property name="text">
-              <string>Start</string>
+              <string>Iniciar</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="btnPause">
+             <property name="toolTip">
+              <string>Pausar el análisis en curso y activar la pestaña de análisis</string>
+             </property>
              <property name="text">
-              <string>Pause</string>
+              <string>Pausar</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="btnStop">
+             <property name="toolTip">
+              <string>Detener el análisis y liberar todas las fuentes de vídeo</string>
+             </property>
              <property name="text">
-              <string>Stop</string>
+              <string>Detener</string>
              </property>
             </widget>
            </item>
@@ -126,22 +147,28 @@
         <item>
          <widget class="QGroupBox" name="groupBox_2">
           <property name="title">
-           <string>Shelf Control</string>
+           <string>Control de estanterías</string>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_9">
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_8">
              <item>
               <widget class="QPushButton" name="btnAddShelve">
+               <property name="toolTip">
+                <string>Pausa el análisis y permite dibujar una estantería arrastrando el ratón sobre la vista previa</string>
+               </property>
                <property name="text">
-                <string>Add Shelf</string>
+                <string>Añadir estantería</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btnResetShelve">
+               <property name="toolTip">
+                <string>Eliminar todas las estanterías definidas en todas las fuentes</string>
+               </property>
                <property name="text">
-                <string>Reset Shelf</string>
+                <string>Restablecer estanterías</string>
                </property>
               </widget>
              </item>
@@ -155,6 +182,9 @@
         </item>
         <item>
          <widget class="QTabWidget" name="log_tabwidget">
+          <property name="toolTip">
+           <string>Monitoreo: clientes detectados en tiempo real. Análisis: informe disponible al terminar o pausar el vídeo</string>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -181,12 +211,12 @@
             <string/>
            </property>
            <attribute name="title">
-            <string>Monitoring</string>
+            <string>Monitoreo</string>
            </attribute>
           </widget>
           <widget class="QWidget" name="tab_2">
            <attribute name="title">
-            <string>Analysis</string>
+            <string>Análisis</string>
            </attribute>
           </widget>
          </widget>
@@ -198,6 +228,9 @@
       </item>
       <item>
        <widget class="QLabel" name="live_preview">
+        <property name="toolTip">
+         <string>Vista previa en vivo de todas las fuentes de vídeo (cuadrícula)</string>
+        </property>
         <property name="font">
          <font>
           <weight>75</weight>
@@ -208,7 +241,7 @@
          <enum>QFrame::NoFrame</enum>
         </property>
         <property name="text">
-         <string>Live Preview</string>
+         <string>Vista previa en vivo</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>

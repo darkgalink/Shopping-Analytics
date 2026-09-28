@@ -30,7 +30,7 @@ class CustomerItem (QtWidgets.QListWidget):
 
     # Set gender
     def setGender(self, gender):
-        self.lblGender.setText(gender)
+        self.lblGender.setText({"Male": "Hombre", "Female": "Mujer"}.get(gender, gender))
 
     # Set ID
     def setID(self, id):

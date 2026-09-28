@@ -66,7 +66,7 @@ class DeviceWindow(QDialog):
     # Connection for file open button
     @QtCore.pyqtSlot()
     def getFilePath(self):
-        fileName = QFileDialog.getOpenFileName(self, 'Open File', 'Dataset\\',"Video files (*.mp4 *.avi)")
+        fileName = QFileDialog.getOpenFileName(self, 'Abrir archivo', 'Dataset\\', "Archivos de vídeo (*.mp4 *.avi)")
         self.fileName = fileName[0]
         self.editPath.setText(fileName[0])
         self.setShelve = False
@@ -86,7 +86,7 @@ class DeviceWindow(QDialog):
             if not cap.read()[0]:
                 break
             else:
-                arr.append("Cam : " + str(index))
+                arr.append("Cámara: " + str(index))
             cap.release()
             index += 1
         return arr
