@@ -5,12 +5,14 @@ from PyQt5.uic import loadUi
 from PyQt5 import QtGui
 from PyQt5.QtGui import QImage, QPixmap
 
+from paths import resource_path
+
 
 # Custom class to show customer information
 class CustomerItem (QtWidgets.QListWidget):
     def __init__ (self, parent = None):
         super(CustomerItem, self).__init__(parent)
-        loadUi("./UI/CustomerItem.ui", self)
+        loadUi(resource_path("ui", "CustomerItem.ui"), self)
 
     # Set data
     def setData(self, data):

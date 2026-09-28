@@ -1,27 +1,16 @@
 import cv2
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import QDialog, QListWidget, QAction, qApp, QDesktopWidget, QFileDialog, QMessageBox, QWidget, QTableWidget,QTableWidgetItem,QVBoxLayout
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
-from PyQt5.uic import loadUi, loadUiType
-from tqdm import tqdm
-from processor.detectracker.tracker import Detectracker
-from processor.agender.gender import Agender
-from analyser.heatmap import Heatmap
-from analyser.dwell import Dwell
-from windows.customer import CustomerItem
+from PyQt5 import QtCore
+from PyQt5.QtWidgets import QDialog, QFileDialog
+from PyQt5.uic import loadUi
+
+from paths import resource_path
 
 
 class DeviceWindow(QDialog):
     def __init__(self, *args, **kwargs):
         super(DeviceWindow, self).__init__(*args, **kwargs)
 
-        loadUi("./UI/DeviceWindow.ui", self)
+        loadUi(resource_path("ui", "DeviceWindow.ui"), self)
 
         # Connection for file open button
         self.btnOpen.clicked.connect(self.getFilePath)

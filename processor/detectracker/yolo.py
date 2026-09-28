@@ -1,28 +1,24 @@
 """
-Run a YOLO_v3 style detection model on test images.
+Run a YOLO_v3 style detection model on test images (OpenCV DNN backend).
 """
 
-import colorsys
 import os
-import random, warnings
-from timeit import time
-from timeit import default_timer as timer  ### to calculate FPS
+import warnings
 
+import cv2
 import numpy as np
-from keras import backend as K
-from keras.models import load_model
-from PIL import Image, ImageFont, ImageDraw
-from keras.utils import multi_gpu_model
+from PIL import Image
 
-from processor.detectracker.yolo3.model import yolo_eval
 from processor.detectracker.yolo3.utils import letterbox_image
+from paths import resource_path
+
 warnings.filterwarnings('ignore')
 
 
 class YOLO(object):
 
     _defaults = {
-        "gpu_num" : 1,
+        "gpu_num": 1,
     }
 
     @classmethod
@@ -33,20 +29,17 @@ class YOLO(object):
             return "Unrecognized attribute name '" + n + "'"
 
     def __init__(self, **kwargs):
-        self.__dict__.update(self._defaults) # set up default values
-        self.__dict__.update(kwargs) # and update with user overrides
-        self.model_path = 'processor/detectracker/model_data/yolo.h5'
-        self.anchors_path = 'processor/detectracker/model_data/yolo_anchors.txt'
-        self.classes_path = 'processor/detectracker/model_data/coco_classes.txt'
+        self.__dict__.update(self._defaults)  # set up default values
+        self.__dict__.update(kwargs)  # and update with user overrides
+        self.cfg_path = resource_path('processor', 'detectracker', 'yolov3.cfg')
+        self.weights_path = resource_path('processor', 'detectracker', 'model_data', 'yolov3.weights')
+        self.classes_path = resource_path('processor', 'detectracker', 'model_data', 'coco_classes.txt')
         self.score = 0.5
         self.iou = 0.5
         self.class_names = self._get_class()
-        self.anchors = self._get_anchors()
-        self.gpu_num = 1
-        self.sess = K.get_session()
-        self.model_image_size = (416, 416) # fixed size or (None, None)
+        self.model_image_size = (416, 416)  # fixed size or (None, None)
         self.is_fixed_size = self.model_image_size != (None, None)
-        self.boxes, self.scores, self.classes = self.generate()
+        self._load_model()
 
     def _get_class(self):
         classes_path = os.path.expanduser(self.classes_path)
@@ -55,45 +48,45 @@ class YOLO(object):
         class_names = [c.strip() for c in class_names]
         return class_names
 
-    def _get_anchors(self):
-        anchors_path = os.path.expanduser(self.anchors_path)
-        with open(anchors_path) as f:
-            anchors = f.readline()
-            anchors = [float(x) for x in anchors.split(',')]
-            anchors = np.array(anchors).reshape(-1, 2)
-        return anchors
+    def _load_model(self):
+        cfg = os.path.expanduser(self.cfg_path)
+        weights = os.path.expanduser(self.weights_path)
+        if not os.path.isfile(weights):
+            raise FileNotFoundError(
+                "YOLO weights not found: %s" % weights)
+        self.net = cv2.dnn.readNetFromDarknet(cfg, weights)
+        self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+        self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+        self.output_names = self.net.getUnconnectedOutLayersNames()
+        self.person_class_id = (self.class_names.index('person')
+                                if 'person' in self.class_names else 0)
 
-    def generate(self):
-        model_path = os.path.expanduser(self.model_path)
-        assert model_path.endswith('.h5'), 'Keras model must be a .h5 file.'
+    def _load_outputs(self, outs, im_height, im_width):
+        """Decode raw layer outputs into filtered boxes in image coordinates."""
+        boxes, confidences = [], []
+        for out in outs:
+            for row in out:
+                scores = row[5:]
+                class_id = int(np.argmax(scores))
+                if class_id != self.person_class_id:
+                    continue
+                confidence = float(row[4]) * float(scores[class_id])
+                if confidence < self.score:
+                    continue
+                cx, cy = row[0] * im_width, row[1] * im_height
+                w, h = row[2] * im_width, row[3] * im_height
+                boxes.append([int(cx - w / 2), int(cy - h / 2),
+                              int(w), int(h)])
+                confidences.append(confidence)
 
-        self.yolo_model = load_model(model_path, compile=False)
-        print('{} model, anchors, and classes loaded.'.format(model_path))
-
-        # Generate colors for drawing bounding boxes.
-        hsv_tuples = [(x / len(self.class_names), 1., 1.)
-                      for x in range(len(self.class_names))]
-        self.colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
-        self.colors = list(
-            map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)),
-                self.colors))
-        random.seed(10101)  # Fixed seed for consistent colors across runs.
-        random.shuffle(self.colors)  # Shuffle colors to decorrelate adjacent classes.
-        random.seed(None)  # Reset seed to default.
-
-        # Generate output tensor targets for filtered bounding boxes.
-        self.input_image_shape = K.placeholder(shape=(2, ))
-        if self.gpu_num>=2:
-            self.yolo_model = multi_gpu_model(self.yolo_model, gpus=self.gpu_num)
-        boxes, scores, classes = yolo_eval(self.yolo_model.output, self.anchors,
-                len(self.class_names), self.input_image_shape,
-                score_threshold=self.score, iou_threshold=self.iou)
-        return boxes, scores, classes
+        indices = cv2.dnn.NMSBoxes(
+            boxes, confidences, self.score, self.iou)
+        return boxes, confidences, indices
 
     def detect_image(self, image):
         if self.is_fixed_size:
-            assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
-            assert self.model_image_size[1]%32 == 0, 'Multiples of 32 required'
+            assert self.model_image_size[0] % 32 == 0, 'Multiples of 32 required'
+            assert self.model_image_size[1] % 32 == 0, 'Multiples of 32 required'
             boxed_image = letterbox_image(image, tuple(reversed(self.model_image_size)))
         else:
             new_image_size = (image.width - (image.width % 32),
@@ -101,38 +94,40 @@ class YOLO(object):
             boxed_image = letterbox_image(image, new_image_size)
         image_data = np.array(boxed_image, dtype='float32')
 
-        #print(image_data.shape)
-        image_data /= 255.
-        image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
+        # letterboxed RGB input, network expects RGB
+        blob = cv2.dnn.blobFromImage(
+            image_data, 1 / 255., image_data.shape[:2][::-1],
+            swapRB=False, crop=False)
+        self.net.setInput(blob)
+        outs = [self.net.forward(name) for name in self.output_names]
 
-        out_boxes, out_scores, out_classes = self.sess.run(
-            [self.boxes, self.scores, self.classes],
-            feed_dict={
-                self.yolo_model.input: image_data,
-                self.input_image_shape: [image.size[1], image.size[0]],
-                K.learning_phase(): 0
-            })
+        # Undo the letterbox padding/scaling to recover original coordinates.
+        orig_w, orig_h = image.size
+        model_w, model_h = image_data.shape[1], image_data.shape[0]
+        scale = min(model_w / float(orig_w), model_h / float(orig_h))
+        pad_x = int((model_w - int(orig_w * scale)) / 2)
+        pad_y = int((model_h - int(orig_h * scale)) / 2)
+
+        boxes, confidences, indices = self._load_outputs(
+            outs, model_h, model_w)
+
         return_boxs = []
-        for i, c in reversed(list(enumerate(out_classes))):
-            predicted_class = self.class_names[c]
-            if predicted_class != 'person' :
-                continue
-            box = out_boxes[i]
-           # score = out_scores[i]
-            x = int(box[1])
-            y = int(box[0])
-            w = int(box[3]-box[1])
-            h = int(box[2]-box[0])
-            if x < 0 :
-                w = w + x
-                x = 0
-            if y < 0 :
-                h = h + y
-                y = 0
-            return_boxs.append([x,y,w,h])
+        if len(indices) > 0:
+            for i in indices.flatten():
+                x, y, w, h = boxes[i]
+                x = int((x - pad_x) / scale)
+                y = int((y - pad_y) / scale)
+                w = int(w / scale)
+                h = int(h / scale)
+                if x < 0:
+                    w = w + x
+                    x = 0
+                if y < 0:
+                    h = h + y
+                    y = 0
+                return_boxs.append([x, y, w, h])
 
         return return_boxs
 
-
     def close_session(self):
-        self.sess.close()
+        pass

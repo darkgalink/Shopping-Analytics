@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QApplication
 from windows.main import MainWindow
 import qdarkstyle
 
+from paths import ensure_output_dirs
+
 
 ## Main Function
 def main():
@@ -10,6 +12,9 @@ def main():
     
     # Set app style
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+
+    # Make sure writable output folders exist
+    ensure_output_dirs()
     
     # Create main window
     main_window = MainWindow()

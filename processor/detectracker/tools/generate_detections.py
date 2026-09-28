@@ -4,7 +4,6 @@ import errno
 import argparse
 import numpy as np
 import cv2
-import tensorflow as tf
 
 
 def _run_in_batches(f, data_dict, out, batch_size):
@@ -55,7 +54,7 @@ def extract_image_patch(image, bbox, patch_shape):
 
     # convert to top left, bottom right
     bbox[2:] += bbox[:2]
-    bbox = bbox.astype(np.int)
+    bbox = bbox.astype(np.int64)
 
     # clip at image boundaries
     bbox[:2] = np.maximum(0, bbox[:2])
@@ -70,28 +69,31 @@ def extract_image_patch(image, bbox, patch_shape):
 
 class ImageEncoder(object):
 
+    OUTPUT_LAYER = "ball/FusedBatchNorm"
+    IMAGE_SHAPE = (128, 64, 3)
+    FEATURE_DIM = 128
+
     def __init__(self, checkpoint_filename, input_name="images",
                  output_name="features"):
-        self.session = tf.Session()
-        with tf.gfile.GFile(checkpoint_filename, "rb") as file_handle:
-            graph_def = tf.GraphDef()
-            graph_def.ParseFromString(file_handle.read())
-        tf.import_graph_def(graph_def, name="net")
-        self.input_var = tf.get_default_graph().get_tensor_by_name(
-            "net/%s:0" % input_name)
-        self.output_var = tf.get_default_graph().get_tensor_by_name(
-            "net/%s:0" % output_name)
+        self.net = cv2.dnn.readNetFromTensorflow(checkpoint_filename)
+        self.image_shape = list(self.IMAGE_SHAPE)
+        self.feature_dim = self.FEATURE_DIM
 
-        assert len(self.output_var.get_shape()) == 2
-        assert len(self.input_var.get_shape()) == 4
-        self.feature_dim = self.output_var.get_shape().as_list()[-1]
-        self.image_shape = self.input_var.get_shape().as_list()[1:]
+    def _forward(self, batch):
+        # graph is NHWC, OpenCV expects NCHW float32 in [0, 255]
+        data = np.asarray(batch["x"])
+        blob = np.ascontiguousarray(data.transpose(0, 3, 1, 2), np.float32)
+        self.net.setInput(blob)
+        out = self.net.forward(self.OUTPUT_LAYER)
+        out = out.reshape(len(data), -1).astype(np.float32)
+        # L2 normalization lives outside the graph
+        norm = np.linalg.norm(out, axis=1, keepdims=True)
+        return out / np.maximum(norm, 1e-12)
 
     def __call__(self, data_x, batch_size=32):
         out = np.zeros((len(data_x), self.feature_dim), np.float32)
-        _run_in_batches(
-            lambda x: self.session.run(self.output_var, feed_dict=x),
-            {self.input_var: data_x}, out, batch_size)
+        _run_in_batches(self._forward, {"x": np.asarray(data_x)}, out,
+                        batch_size)
         return out
 
 
@@ -159,9 +161,9 @@ def generate_detections(encoder, mot_dir, output_dir, detection_dir=None):
         detections_in = np.loadtxt(detection_file, delimiter=',')
         detections_out = []
 
-        frame_indices = detections_in[:, 0].astype(np.int)
-        min_frame_idx = frame_indices.astype(np.int).min()
-        max_frame_idx = frame_indices.astype(np.int).max()
+        frame_indices = detections_in[:, 0].astype(np.int64)
+        min_frame_idx = frame_indices.astype(np.int64).min()
+        max_frame_idx = frame_indices.astype(np.int64).max()
         for frame_idx in range(min_frame_idx, max_frame_idx + 1):
             print("Frame %05d/%05d" % (frame_idx, max_frame_idx))
             mask = frame_indices == frame_idx

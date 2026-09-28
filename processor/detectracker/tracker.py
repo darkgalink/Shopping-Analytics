@@ -14,6 +14,7 @@ from processor.detectracker.deep_sort.detection import Detection
 from processor.detectracker.deep_sort.tracker import Tracker
 from processor.detectracker.tools import generate_detections as gdet
 from processor.detectracker.deep_sort.detection import Detection as ddet
+from paths import resource_path
 warnings.filterwarnings('ignore')
 
 class Detectracker:
@@ -27,7 +28,7 @@ class Detectracker:
         self.nms_max_overlap = 1.0
 
         # deep_sort
-        self.model_filename = 'processor/detectracker/model_data/mars-small128.pb'
+        self.model_filename = resource_path('processor', 'detectracker', 'model_data', 'mars-small128-opencv.pb')
         self.encoder = gdet.create_box_encoder(self.model_filename,batch_size=1)
 
         self.metric = nn_matching.NearestNeighborDistanceMetric("cosine", self.max_cosine_distance, self.nn_budget)

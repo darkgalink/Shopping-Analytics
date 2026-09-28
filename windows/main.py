@@ -1,16 +1,14 @@
 import cv2
 import random as rng
-import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from PyQt5.QtWidgets import QMessageBox, QMainWindow, QStatusBar, QListWidget, QAction, qApp, QDesktopWidget, QFileDialog, QMessageBox, QWidget, QTableWidget,QTableWidgetItem,QVBoxLayout
+from PyQt5.QtWidgets import QMessageBox, QMainWindow, QStatusBar, QListWidget, QAction, qApp, QDesktopWidget, QFileDialog, QWidget, QTableWidget,QTableWidgetItem,QVBoxLayout
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.uic import loadUi
-from tqdm import tqdm
+from paths import resource_path
 from processor.detectracker.tracker import Detectracker
 from processor.agender.gender import Agender
 from analyser.heatmap import Heatmap
@@ -22,7 +20,7 @@ from windows.device import DeviceWindow
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        loadUi("./UI/MainWindow.ui", self)
+        loadUi(resource_path("ui", "MainWindow.ui"), self)
 
         self.live_preview.setScaledContents(True)
         from PyQt5.QtWidgets import QSizePolicy

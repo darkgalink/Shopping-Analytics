@@ -4,19 +4,21 @@ import math
 import time
 import argparse
 
+from paths import resource_path
+
 class Agender:
     
     # Initialization
     def __init__(self):
         # Set model paths
-        self.faceProto = "processor/agender/opencv_face_detector.pbtxt"
-        self.faceModel = "processor/agender/opencv_face_detector_uint8.pb"
+        self.faceProto = resource_path("processor", "agender", "opencv_face_detector.pbtxt")
+        self.faceModel = resource_path("processor", "agender", "opencv_face_detector_uint8.pb")
         
-        self.ageProto = "processor/agender/model/deploy_age2.prototxt"
-        self.ageModel = "processor/agender/model/age_net.caffemodel"
+        self.ageProto = resource_path("processor", "agender", "model", "deploy_age2.prototxt")
+        self.ageModel = resource_path("processor", "agender", "model", "age_net.caffemodel")
         
-        self.genderProto = "processor/agender/model/deploy_gender2.prototxt"
-        self.genderModel = "processor/agender/model/gender_net.caffemodel"
+        self.genderProto = resource_path("processor", "agender", "model", "deploy_gender2.prototxt")
+        self.genderModel = resource_path("processor", "agender", "model", "gender_net.caffemodel")
         
         self.MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
         self.ageList = ['(0-2)', '(4-6)', '(8-12)', '(15-20)', '(25-32)', '(38-43)', '(48-53)', '(60-100)']
