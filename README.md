@@ -73,6 +73,8 @@ el script de descarga una vez antes de `pyinstaller`.
 La aplicación de escritorio funciona con PyQt, ejecútala con: ```
 .venv\Scripts\python footfall.py
 ```
+O más fácil: doble clic en **`run.bat`** — crea el entorno virtual si falta, instala las dependencias,
+descarga los modelos que falten y lanza la aplicación.
 
 Elige un archivo de video (hay muestras en `data/tests/`), la webcam o la URL de una cámara IP en el diálogo de dispositivo y pulsa Aceptar.
 Los registros (CSV) se escriben en `data/logs/` bajo el directorio de trabajo actual.
@@ -80,6 +82,9 @@ Los registros (CSV) se escriben en `data/logs/` bajo el directorio de trabajo ac
 ---
 
 ## Compilar una aplicación de escritorio independiente (PyInstaller)
+
+O más fácil: doble clic en **`build.bat`** — prepara el entorno, verifica/descarga los modelos,
+compila con PyInstaller y deja la aplicación lista en `dist\ShoppingAnalytics\`.
 
 Los usuarios finales no necesitan Python — la aplicación se puede empaquetar en una carpeta autónoma con: ```
 python -m pip install pyinstaller
